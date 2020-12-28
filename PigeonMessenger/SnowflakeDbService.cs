@@ -70,50 +70,9 @@ namespace PigeonMessenger
                                $"AND sender = '{sender}' " +
                                $"AND updatedAt > '{startDateTimeFilter}' " + // Using updatedAt instead of createdAt since if a message is edited, that's the intended message (might refactor to make an edited message a new message?)
                                $"AND isPublic = true " +
-                               $"ORDER BY updatedAt DESC;"; 
+                               $"ORDER BY updatedAt DESC;";
 
-            using (IDbConnection conn = new SnowflakeDbConnection())
-            {
-                try
-                {
-                    var connectionString = $"account={Environment.GetEnvironmentVariable("SnowflakeAccount")};" +
-                                           $"user={Environment.GetEnvironmentVariable("SnowflakeUser")};" +
-                                           $"password={Environment.GetEnvironmentVariable("SnowflakePassword")};" +
-                                           $"db={Environment.GetEnvironmentVariable("SnowflakeDb")};" +
-                                           $"schema={Environment.GetEnvironmentVariable("SnowflakeSchema")}";
-
-                    conn.ConnectionString = connectionString;
-                    conn.Open();
-
-                    IDbCommand cmd = conn.CreateCommand();
-
-                    cmd.CommandText = sqlStatement;
-                    IDataReader reader = cmd.ExecuteReader();
-
-                    while (reader.Read())
-                    {
-                        var record = (IDataRecord)reader;
-                        var message = new Message();
-                        message.Id = $"{record["ID"]}";
-                        message.Sender = $"{record["SENDER"]}";
-                        message.Recipient = $"{record["RECIPIENT"]}";
-                        message.Body = $"{record["BODY"]}";
-                        message.CreatedAt = DateTime.Parse($"{record["CREATEDAT"]}");
-                        message.UpdatedAt = DateTime.Parse($"{record["UPDATEDAT"]}");
-
-                        messages.Add(message);
-                    }
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, $"Failed to execute Snowflake query: {e.Message}");
-                    throw;
-                }
-                finally
-                {
-                    conn.Close();
-                }
-            }
+            ExecuteGetMessagesQuery(messages, sqlStatement);
 
             return messages;
         }
@@ -128,48 +87,7 @@ namespace PigeonMessenger
                                $"ORDER BY updatedAt DESC " +
                                $"LIMIT {limit};";
 
-            using (IDbConnection conn = new SnowflakeDbConnection())
-            {
-                try
-                {
-                    var connectionString = $"account={Environment.GetEnvironmentVariable("SnowflakeAccount")};" +
-                                           $"user={Environment.GetEnvironmentVariable("SnowflakeUser")};" +
-                                           $"password={Environment.GetEnvironmentVariable("SnowflakePassword")};" +
-                                           $"db={Environment.GetEnvironmentVariable("SnowflakeDb")};" +
-                                           $"schema={Environment.GetEnvironmentVariable("SnowflakeSchema")}";
-
-                    conn.ConnectionString = connectionString;
-                    conn.Open();
-
-                    IDbCommand cmd = conn.CreateCommand();
-
-                    cmd.CommandText = sqlStatement;
-                    IDataReader reader = cmd.ExecuteReader();
-
-                    while (reader.Read())
-                    {
-                        var record = (IDataRecord)reader;
-                        var message = new Message();
-                        message.Id = $"{record["ID"]}";
-                        message.Sender = $"{record["SENDER"]}";
-                        message.Recipient = $"{record["RECIPIENT"]}";
-                        message.Body = $"{record["BODY"]}";
-                        message.CreatedAt = DateTime.Parse($"{record["CREATEDAT"]}");
-                        message.UpdatedAt = DateTime.Parse($"{record["UPDATEDAT"]}");
-
-                        messages.Add(message);
-                    }
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, $"Failed to execute Snowflake query: {e.Message}");
-                    throw;
-                }
-                finally
-                {
-                    conn.Close();
-                }
-            }
+            ExecuteGetMessagesQuery(messages, sqlStatement);
 
             return messages;
         }
@@ -185,48 +103,7 @@ namespace PigeonMessenger
                                $"AND isPublic = true " +
                                $"ORDER BY updatedAt DESC;";
 
-            using (IDbConnection conn = new SnowflakeDbConnection())
-            {
-                try
-                {
-                    var connectionString = $"account={Environment.GetEnvironmentVariable("SnowflakeAccount")};" +
-                                           $"user={Environment.GetEnvironmentVariable("SnowflakeUser")};" +
-                                           $"password={Environment.GetEnvironmentVariable("SnowflakePassword")};" +
-                                           $"db={Environment.GetEnvironmentVariable("SnowflakeDb")};" +
-                                           $"schema={Environment.GetEnvironmentVariable("SnowflakeSchema")}";
-
-                    conn.ConnectionString = connectionString;
-                    conn.Open();
-
-                    IDbCommand cmd = conn.CreateCommand();
-
-                    cmd.CommandText = sqlStatement;
-                    IDataReader reader = cmd.ExecuteReader();
-
-                    while (reader.Read())
-                    {
-                        var record = (IDataRecord)reader;
-                        var message = new Message();
-                        message.Id = $"{record["ID"]}";
-                        message.Sender = $"{record["SENDER"]}";
-                        message.Recipient = $"{record["RECIPIENT"]}";
-                        message.Body = $"{record["BODY"]}";
-                        message.CreatedAt = DateTime.Parse($"{record["CREATEDAT"]}");
-                        message.UpdatedAt = DateTime.Parse($"{record["UPDATEDAT"]}");
-
-                        messages.Add(message);
-                    }
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, $"Failed to execute Snowflake query: {e.Message}");
-                    throw;
-                }
-                finally
-                {
-                    conn.Close();
-                }
-            }
+            ExecuteGetMessagesQuery(messages, sqlStatement);
 
             return messages;
         }
@@ -243,6 +120,14 @@ namespace PigeonMessenger
                                $"ORDER BY updatedAt DESC " +
                                $"LIMIT {limit};";
 
+            ExecuteGetMessagesQuery(messages, sqlStatement);
+
+            return messages;
+        }
+
+
+        private void ExecuteGetMessagesQuery(List<Message> messages, string sqlStatement)
+        {
             using (IDbConnection conn = new SnowflakeDbConnection())
             {
                 try
@@ -285,8 +170,6 @@ namespace PigeonMessenger
                     conn.Close();
                 }
             }
-
-            return messages;
         }
     }
 }
