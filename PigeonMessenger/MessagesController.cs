@@ -54,12 +54,47 @@ namespace PigeonMessenger
 
             if (req.Query.ContainsKey("since_days_ago"))
             {
-                int sinceDaysAgo = int.Parse(req.Query["since_days_ago"]) > 30 ? 30 : int.Parse(req.Query["since_days_ago"]);
+                int sinceDaysAgo;
+                try
+                {
+                    sinceDaysAgo = int.Parse(req.Query["since_days_ago"]) > 30 ? 30 : int.Parse(req.Query["since_days_ago"]);
+
+                }
+                catch (Exception)
+                {
+                    return new BadRequestObjectResult("Value provided for since_days_ago parameter could not be processed. Please provide a valid number from 0 to 30 i.e. '?since_days_ago=10'");
+                }
+
                 messages = _snowflakeDbService.GetMessagesBetweenPartiesSinceDaysAgo(recipient, sender, sinceDaysAgo);
                 return new OkObjectResult(messages);
             }
 
             messages = _snowflakeDbService.GetMessagesBetweenPartiesWithLimit(recipient, sender, int.Parse(Environment.GetEnvironmentVariable("DefaultResultsLimit")));
+            return new OkObjectResult(messages);
+        }
+
+        [FunctionName("MessagesGetForAllSenders")]
+        public async Task<IActionResult> MessagesGetForAllSenders([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/messages")] HttpRequest req)
+        {
+            IEnumerable<Message> messages;
+
+            if (req.Query.ContainsKey("since_days_ago"))
+            {
+                int sinceDaysAgo;
+                try
+                {
+                    sinceDaysAgo = int.Parse(req.Query["since_days_ago"]) > 30 ? 30 : int.Parse(req.Query["since_days_ago"]);
+                }
+                catch (Exception)
+                {
+                    return new BadRequestObjectResult("Value provided for since_days_ago parameter could not be processed. Please provide a valid number from 0 to 30 i.e. '?since_days_ago=10'");
+                }
+
+                messages = _snowflakeDbService.GetMessagesAllSendersSinceDaysAgo(sinceDaysAgo);
+                return new OkObjectResult(messages);
+            }
+
+            messages = _snowflakeDbService.GetMessagesAllSendersWithLimit(int.Parse(Environment.GetEnvironmentVariable("DefaultResultsLimit")));
             return new OkObjectResult(messages);
         }
     }
