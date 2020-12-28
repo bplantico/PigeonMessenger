@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PigeonMessenger", "PigeonMe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PigeonMessenger.Contract", "PigeonMessenger.Contract\PigeonMessenger.Contract.csproj", "{61B52EAA-1996-44D8-BABE-EA6155426EC3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PigeonMessenger.Tests", "PigeonMessenger.Tests\PigeonMessenger.Tests.csproj", "{96E1B280-88C0-4C13-96BE-60FBD51989FE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{61B52EAA-1996-44D8-BABE-EA6155426EC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{61B52EAA-1996-44D8-BABE-EA6155426EC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{61B52EAA-1996-44D8-BABE-EA6155426EC3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96E1B280-88C0-4C13-96BE-60FBD51989FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96E1B280-88C0-4C13-96BE-60FBD51989FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96E1B280-88C0-4C13-96BE-60FBD51989FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96E1B280-88C0-4C13-96BE-60FBD51989FE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
