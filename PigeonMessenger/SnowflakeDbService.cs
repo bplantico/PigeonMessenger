@@ -16,6 +16,7 @@ namespace PigeonMessenger
             _logger = logger;
         }
 
+
         public string CreateMessage(Message message)
         {
             var cleanSender = message.Sender.Trim().ToLower();
@@ -23,7 +24,6 @@ namespace PigeonMessenger
             message.Id = Guid.NewGuid().ToString("N");
             var serializedBody = JsonSerializer.Serialize(message.Body);
 
-            // May need this to create timestamp TO_TIMESTAMP ('{message.CreatedAt.ToString("yyyy-MM-dd HH:m:ss")}', 'YYYY-MM-DD HH24:MI:SS')
             var sqlStatement = $"INSERT INTO messages (id, sender, recipient, body, isPublic) " +
                                $"SELECT '{message.Id}', '{cleanSender}', '{cleanRecipient}', '{serializedBody}', {message.IsPublic};";
 
