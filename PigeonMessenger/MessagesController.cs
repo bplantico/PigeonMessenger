@@ -45,5 +45,11 @@ namespace PigeonMessenger
 
             return new CreatedResult($"{req.Path}/{messageId}", messageId);
         }
+
+        [FunctionName("MessagesGetForRecipientFromSpecificSender")]
+        public async Task<IActionResult> MessagesGetForRecipientFromSpecificSender([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/messages/{recipient}/{sender}")] HttpRequest req, string recipient, string sender)
+        {
+            return new OkResult();
+        }
     }
 }
