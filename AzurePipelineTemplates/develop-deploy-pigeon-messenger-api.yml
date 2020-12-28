@@ -1,0 +1,16 @@
+steps:
+  - checkout: none
+  - task: DownloadBuildArtifacts@0
+    inputs:
+      buildType: 'current'
+      downloadType: 'single'
+      downloadPath: '$(System.ArtifactsDirectory)'
+      artifactName: 'PigeonMessenger-$(Build.BuildId)'
+
+  - task: AzureFunctionApp@1
+    displayName: 'Azure functions app deploy'
+    inputs:
+      azureSubscription: 'Azure subscription 1 (1e4cfb39-90dd-4fef-a10b-52c35b3ef296)'
+      appType: functionApp
+      appName: 'PigeonMessengerApp'
+      package: '$(System.ArtifactsDirectory)/**/*.zip'

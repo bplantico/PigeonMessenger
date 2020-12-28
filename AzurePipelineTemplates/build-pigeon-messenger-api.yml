@@ -1,0 +1,40 @@
+steps:
+  - task: UseDotNet@2
+    inputs:
+      packageType: 'sdk'
+      version: 3.1.101
+
+  - script: dotnet tool restore
+    displayName: dotnet tool restore
+
+  - task: NuGetToolInstaller@1
+
+  - task: DotNetCoreCLI@2
+    displayName: Nuget Restore
+    inputs:
+      command: 'restore'
+      projects: '**/PigeonMessenger.csproj'
+      feedsToUse: 'select'
+
+  - task: DotNetCoreCLI@2
+    displayName: Build
+    inputs:
+      command: 'build'
+      projects: |
+        $(System.DefaultWorkingDirectory)/PigeonMessenger/*.csproj
+      arguments: --output $(System.DefaultWorkingDirectory)/publish_output --configuration Release
+
+  - task: ArchiveFiles@2
+    displayName: 'Archive files'
+    inputs:
+      rootFolderOrFile: '$(System.DefaultWorkingDirectory)/publish_output'
+      includeRootFolder: false
+      archiveType: zip
+      archiveFile: $(Build.ArtifactStagingDirectory)/PigeonMessenger-$(Build.BuildId).zip
+      replaceExistingArchive: true
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: 'PigeonMessenger-$(Build.BuildId)'
+      publishLocation: 'Container'

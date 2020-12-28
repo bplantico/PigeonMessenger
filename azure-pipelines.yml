@@ -1,0 +1,41 @@
+# ASP.NET Core (.NET Framework)
+# Build and test ASP.NET Core projects targeting the full .NET Framework.
+# Add steps that publish symbols, save build artifacts, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+
+stages:
+  - stage: BuildPigeonMessengerAPI
+    displayName: Build Pigeon Messenger API
+    jobs:
+    - job: buildPigeonMessengerAPI
+      displayName: Build Leadgen Processors API
+      pool:
+        vmImage: 'windows-latest'
+      steps:
+      - template: AzurePipelineTemplates/build-pigeon-messenger-api.yml
+
+  - stage: DeployDevelop
+    displayName: Deploy Develop Branch
+    condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/develop'))
+    dependsOn:
+    - BuildPigeonMessengerAPI
+
+    jobs:
+    - job: PigeonMessengerAPI
+      pool:
+        vmImage: 'windows-latest'
+      steps:
+      - template: AzurePipelineTemplates/develop-deploy-pigeon-messenger-api.yml
+
+  - stage: DeployProduction
+    displayName: Deploy Production Branch
+    condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/production'))
+    dependsOn:
+    - BuildPigeonMessengerAPI
+
+    jobs:
+    - job: PigeonMessengerAPI
+      pool:
+        vmImage: 'windows-latest'
+      steps:
+      - template: AzurePipelineTemplates/production-deploy-pigeon-messenger-api.yml
