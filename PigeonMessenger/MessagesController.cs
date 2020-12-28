@@ -56,8 +56,11 @@ namespace PigeonMessenger
             {
                 int sinceDaysAgo = int.Parse(req.Query["since_days_ago"]) > 30 ? 30 : int.Parse(req.Query["since_days_ago"]);
                 messages = _snowflakeDbService.GetMessagesBetweenPartiesSinceDaysAgo(recipient, sender, sinceDaysAgo);
+                return new OkObjectResult(messages);
             }
-            return new OkResult();
+
+            messages = _snowflakeDbService.GetMessagesBetweenPartiesWithLimit(recipient, sender, int.Parse(Environment.GetEnvironmentVariable("DefaultResultsLimit")));
+            return new OkObjectResult(messages);
         }
     }
 }

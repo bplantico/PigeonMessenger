@@ -61,7 +61,119 @@ namespace PigeonMessenger
 
         internal IEnumerable<Message> GetMessagesBetweenPartiesSinceDaysAgo(string recipient, string sender, int sinceDaysAgo)
         {
-            throw new NotImplementedException();
+            var startDateTimeFilter = DateTime.UtcNow.AddDays(-sinceDaysAgo).ToString("yyyy-MM-dd HH:mm:ss");
+            var messages = new List<Message>();
+
+            var sqlStatement = $"SELECT * " +
+                               $"FROM messages " +
+                               $"WHERE recipient = '{recipient}' " +
+                               $"AND sender = '{sender}' " +
+                               $"AND updatedAt > '{startDateTimeFilter}' " + // Using updatedAt instead of createdAt since if a message is edited, that's the intended message (might refactor to make an edited message a new message?)
+                               $"AND isPublic = true " +
+                               $"ORDER BY updatedAt DESC;"; 
+
+            using (IDbConnection conn = new SnowflakeDbConnection())
+            {
+                try
+                {
+                    var connectionString = $"account={Environment.GetEnvironmentVariable("SnowflakeAccount")};" +
+                                           $"user={Environment.GetEnvironmentVariable("SnowflakeUser")};" +
+                                           $"password={Environment.GetEnvironmentVariable("SnowflakePassword")};" +
+                                           $"db={Environment.GetEnvironmentVariable("SnowflakeDb")};" +
+                                           $"schema={Environment.GetEnvironmentVariable("SnowflakeSchema")}";
+
+                    conn.ConnectionString = connectionString;
+                    conn.Open();
+
+                    IDbCommand cmd = conn.CreateCommand();
+
+                    cmd.CommandText = sqlStatement;
+                    IDataReader reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        var record = (IDataRecord)reader;
+                        var message = new Message();
+                        message.Id = $"{record["ID"]}";
+                        message.Sender = $"{record["SENDER"]}";
+                        message.Recipient = $"{record["RECIPIENT"]}";
+                        message.Body = $"{record["BODY"]}";
+                        message.CreatedAt = DateTime.Parse($"{record["CREATEDAT"]}");
+                        message.UpdatedAt = DateTime.Parse($"{record["UPDATEDAT"]}");
+
+                        messages.Add(message);
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, $"Failed to execute Snowflake query: {e.Message}");
+                    throw;
+                }
+                finally
+                {
+                    conn.Close();
+                }
+            }
+
+            return messages;
+        }
+
+        internal IEnumerable<Message> GetMessagesBetweenPartiesWithLimit(string recipient, string sender, int limit)
+        {
+            var messages = new List<Message>();
+
+            var sqlStatement = $"SELECT * " +
+                               $"FROM messages " +
+                               $"WHERE recipient = '{recipient}' " +
+                               $"AND sender = '{sender}' " +
+                               $"AND isPublic = true " +
+                               $"ORDER BY updatedAt DESC " +
+                               $"LIMIT {limit};";
+
+            using (IDbConnection conn = new SnowflakeDbConnection())
+            {
+                try
+                {
+                    var connectionString = $"account={Environment.GetEnvironmentVariable("SnowflakeAccount")};" +
+                                           $"user={Environment.GetEnvironmentVariable("SnowflakeUser")};" +
+                                           $"password={Environment.GetEnvironmentVariable("SnowflakePassword")};" +
+                                           $"db={Environment.GetEnvironmentVariable("SnowflakeDb")};" +
+                                           $"schema={Environment.GetEnvironmentVariable("SnowflakeSchema")}";
+
+                    conn.ConnectionString = connectionString;
+                    conn.Open();
+
+                    IDbCommand cmd = conn.CreateCommand();
+
+                    cmd.CommandText = sqlStatement;
+                    IDataReader reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        var record = (IDataRecord)reader;
+                        var message = new Message();
+                        message.Id = $"{record["ID"]}";
+                        message.Sender = $"{record["SENDER"]}";
+                        message.Recipient = $"{record["RECIPIENT"]}";
+                        message.Body = $"{record["BODY"]}";
+                        message.CreatedAt = DateTime.Parse($"{record["CREATEDAT"]}");
+                        message.UpdatedAt = DateTime.Parse($"{record["UPDATEDAT"]}");
+
+                        messages.Add(message);
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, $"Failed to execute Snowflake query: {e.Message}");
+                    throw;
+                }
+                finally
+                {
+                    conn.Close();
+                }
+            }
+
+            return messages;
         }
     }
 }
