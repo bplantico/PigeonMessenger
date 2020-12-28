@@ -4,6 +4,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using PigeonMessenger.Contract;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -49,6 +50,13 @@ namespace PigeonMessenger
         [FunctionName("MessagesGetForRecipientFromSpecificSender")]
         public async Task<IActionResult> MessagesGetForRecipientFromSpecificSender([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/messages/{recipient}/{sender}")] HttpRequest req, string recipient, string sender)
         {
+            IEnumerable<Message> messages;
+
+            if (req.Query.ContainsKey("since_days_ago"))
+            {
+                int sinceDaysAgo = int.Parse(req.Query["since_days_ago"]) > 30 ? 30 : int.Parse(req.Query["since_days_ago"]);
+                messages = _snowflakeDbService.GetMessagesBetweenPartiesSinceDaysAgo(recipient, sender, sinceDaysAgo);
+            }
             return new OkResult();
         }
     }

@@ -2,6 +2,7 @@
 using PigeonMessenger.Contract;
 using Snowflake.Data.Client;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Text.Json;
 
@@ -56,6 +57,11 @@ namespace PigeonMessenger
             }
 
             return message.Id;
+        }
+
+        internal IEnumerable<Message> GetMessagesBetweenPartiesSinceDaysAgo(string recipient, string sender, int sinceDaysAgo)
+        {
+            throw new NotImplementedException();
         }
     }
 }
