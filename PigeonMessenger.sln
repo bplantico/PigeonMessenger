@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30804.86
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PigeonMessenger", "PigeonMessenger\PigeonMessenger.csproj", "{6F6504C4-879D-46D2-BB25-FCF3214CB276}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6F6504C4-879D-46D2-BB25-FCF3214CB276}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F6504C4-879D-46D2-BB25-FCF3214CB276}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F6504C4-879D-46D2-BB25-FCF3214CB276}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F6504C4-879D-46D2-BB25-FCF3214CB276}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0571D432-9D8A-4497-9B09-620C7F0D727A}
+	EndGlobalSection
+EndGlobal
