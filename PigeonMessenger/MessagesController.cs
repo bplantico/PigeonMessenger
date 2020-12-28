@@ -1,26 +1,25 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using PigeonMessenger.Contract;
+using System;
+using System.IO;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace PigeonMessenger
 {
     public class MessagesController
     {
-        private readonly ILogger _logger;
-        public MessagesController(ILogger logger)
+        private readonly SnowflakeDbService _snowflakeDbService;
+        public MessagesController(SnowflakeDbService snowflakeDbService)
         {
-            _logger = logger;
+            _snowflakeDbService = snowflakeDbService;
         }
 
         [FunctionName("MessagesCreate")]
-        public async Task<IActionResult> MessagesCreate([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/messages")] HttpRequest req)
+        public async Task<IActionResult> MessagesCreate([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/messages")] HttpRequest req)
         {
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var message = JsonSerializer.Deserialize<Message>(requestBody, new JsonSerializerOptions
@@ -32,14 +31,19 @@ namespace PigeonMessenger
             {
                 return new BadRequestObjectResult("Sender is required.");
             }
-
             if (String.IsNullOrEmpty(message.Recipient))
             {
                 return new BadRequestObjectResult("Recipient is required.");
             }
+            if (String.IsNullOrEmpty(message.Body))
+            {
+                return new BadRequestObjectResult("Message body is required.");
+            }
 
-            _logger.LogInformation("C# HTTP trigger function processed a request.");
-            return new OkResult();
+            // Call a data storage service to persist the provided message.
+            var messageId = _snowflakeDbService.CreateMessage(message);
+
+            return new CreatedResult($"{req.Path}/{messageId}", messageId);
         }
     }
 }
