@@ -16,7 +16,7 @@ namespace PigeonMessenger
             _logger = logger;
         }
 
-        internal string CreateMessage(Message message)
+        public string CreateMessage(Message message)
         {
             var cleanSender = message.Sender.Trim().ToLower();
             var cleanRecipient = message.Recipient.Trim().ToLower();
@@ -59,7 +59,7 @@ namespace PigeonMessenger
             return message.Id;
         }
 
-        internal IEnumerable<Message> GetMessagesBetweenPartiesSinceDaysAgo(string recipient, string sender, int sinceDaysAgo)
+        public IEnumerable<Message> GetMessagesBetweenPartiesSinceDaysAgo(string recipient, string sender, int sinceDaysAgo)
         {
             var startDateTimeFilter = DateTime.UtcNow.AddDays(-sinceDaysAgo).ToString("yyyy-MM-dd HH:mm:ss");
             var messages = new List<Message>();
@@ -118,7 +118,7 @@ namespace PigeonMessenger
             return messages;
         }
 
-        internal IEnumerable<Message> GetMessagesAllSendersWithLimit(int limit)
+        public IEnumerable<Message> GetMessagesAllSendersWithLimit(int limit)
         {
             var messages = new List<Message>();
 
@@ -174,7 +174,7 @@ namespace PigeonMessenger
             return messages;
         }
 
-        internal IEnumerable<Message> GetMessagesAllSendersSinceDaysAgo(int sinceDaysAgo)
+        public IEnumerable<Message> GetMessagesAllSendersSinceDaysAgo(int sinceDaysAgo)
         {
             var startDateTimeFilter = DateTime.UtcNow.AddDays(-sinceDaysAgo).ToString("yyyy-MM-dd HH:mm:ss");
             var messages = new List<Message>();
@@ -231,7 +231,7 @@ namespace PigeonMessenger
             return messages;
         }
 
-        internal IEnumerable<Message> GetMessagesBetweenPartiesWithLimit(string recipient, string sender, int limit)
+        public IEnumerable<Message> GetMessagesBetweenPartiesWithLimit(string recipient, string sender, int limit)
         {
             var messages = new List<Message>();
 
