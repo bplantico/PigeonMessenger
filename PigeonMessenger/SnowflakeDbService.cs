@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace PigeonMessenger
 {
-    public class SnowflakeDbService
+    public class SnowflakeDbService : IDbService
     {
         private readonly ILogger _logger;
         public SnowflakeDbService(ILogger<SnowflakeDbService> logger)
