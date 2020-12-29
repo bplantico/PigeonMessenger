@@ -60,16 +60,6 @@
             <param name="message"></param>
             <returns></returns>
         </member>
-        <member name="M:PigeonMessenger.SnowflakeDbService.GetMessagesBetweenPartiesSinceDaysAgo(System.String,System.String,System.Int32)">
-            <summary>
-            Takes 'recipient', 'sender', and 'sinceDaysAgo' parameters and queries the messages table for all messages between the provided parties during the number of days provided, up to a maximum of 30 days.
-            Results are returned in descending order by the time they were created at.
-            </summary>
-            <param name="recipient"></param>
-            <param name="sender"></param>
-            <param name="sinceDaysAgo"></param>
-            <returns></returns>
-        </member>
         <member name="M:PigeonMessenger.SnowflakeDbService.GetMessagesAllSendersWithLimit(System.Int32)">
             <summary>
             Takes a 'limit' parameter and queries the messages tabel for all messages from any/all senders, up to the provided limit.
@@ -94,6 +84,23 @@
             <param name="recipient"></param>
             <param name="sender"></param>
             <param name="limit"></param>
+            <returns></returns>
+        </member>
+        <member name="M:PigeonMessenger.SnowflakeDbService.GetMessagesBetweenPartiesSinceDaysAgo(System.String,System.String,System.Int32)">
+            <summary>
+            Takes 'recipient', 'sender', and 'sinceDaysAgo' parameters and queries the messages table for all messages between the provided parties during the number of days provided, up to a maximum of 30 days.
+            Results are returned in descending order by the time they were created at.
+            </summary>
+            <param name="recipient"></param>
+            <param name="sender"></param>
+            <param name="sinceDaysAgo"></param>
+            <returns></returns>
+        </member>
+        <member name="M:PigeonMessenger.SnowflakeDbService.DeleteMessage(System.String)">
+            <summary>
+            Deletes record with given ID from Snowflake database.
+            </summary>
+            <param name="id"></param>
             <returns></returns>
         </member>
     </members>

@@ -99,72 +99,12 @@ namespace PigeonMessenger
         }
 
         /// <summary>
-        /// Takes 'recipient', 'sender', and 'sinceDaysAgo' parameters and queries the messages table for all messages between the provided parties during the number of days provided, up to a maximum of 30 days.
-        /// Results are returned in descending order by the time they were created at.
-        /// </summary>
-        /// <param name="recipient"></param>
-        /// <param name="sender"></param>
-        /// <param name="sinceDaysAgo"></param>
-        /// <returns></returns>
-        public IEnumerable<Message> GetMessagesBetweenPartiesSinceDaysAgo(string recipient, string sender, int sinceDaysAgo)
-        {
-            var cleanRecipient = recipient.Trim().ToLower();
-            var cleanSender = sender.Trim().ToLower();
-            var startDateTimeFilter = DateTime.UtcNow.AddDays(-sinceDaysAgo).ToString("yyyy-MM-dd HH:mm:ss");
-            var messages = new List<Message>();
-
-            // parameterized to prevent SQL injection and to handle correctly parsing special characters.
-            var parameterizedSql = $"SELECT * " +
-                               $"FROM messages " +
-                               $"WHERE createdAt > (?) " + // startDateTimeFilter
-                               $"AND isPublic = true " +
-                               $"AND (recipient = (?) AND sender = (?)) " + // cleanRecipient, cleanSender
-                               $"OR (recipient = (?) AND sender = (?)) " + // cleanSender, cleanRecipient
-                               $"ORDER BY createdAt DESC;"; // To-do: May consider adding a limit to this call i.e. what if 10,000 messages were exchanged between these two parties in the time provided? How useful would that result set be?
-            
-            var parameters = new List<SnowflakeDbParameter>();
-            var p1 = new SnowflakeDbParameter();
-            p1.ParameterName = "1"; // Don't change (unless query changes, of course). These correspond to the position they'll take in the query string.
-            p1.Value = startDateTimeFilter;
-            p1.DbType = DbType.String;
-            parameters.Add(p1);
-
-            var p2 = new SnowflakeDbParameter();
-            p2.ParameterName = "2";
-            p2.Value = cleanRecipient;
-            p2.DbType = DbType.String;
-            parameters.Add(p2);
-
-            var p3 = new SnowflakeDbParameter();
-            p3.ParameterName = "3";
-            p3.Value = cleanSender;
-            p3.DbType = DbType.String;
-            parameters.Add(p3);
-
-            var p4 = new SnowflakeDbParameter();
-            p4.ParameterName = "4";
-            p4.Value = cleanSender;
-            p4.DbType = DbType.String;
-            parameters.Add(p4);
-
-            var p5 = new SnowflakeDbParameter();
-            p5.ParameterName = "5";
-            p5.Value = cleanRecipient;
-            p5.DbType = DbType.String;
-            parameters.Add(p5);
-
-            ExecuteGetMessagesQuery(messages, parameterizedSql, parameters);
-
-            return messages;
-        }
-
-        /// <summary>
         /// Takes a 'limit' parameter and queries the messages tabel for all messages from any/all senders, up to the provided limit.
         /// Results are returned in descending order by the time they were created at.
         /// </summary>
         /// <param name="limit"></param>
         /// <returns></returns>
-        public IEnumerable<Message> GetMessagesAllSendersWithLimit(int limit)
+        public List<Message> GetMessagesAllSendersWithLimit(int limit)
         {
             var messages = new List<Message>();
 
@@ -187,7 +127,7 @@ namespace PigeonMessenger
         /// </summary>
         /// <param name="sinceDaysAgo"></param>
         /// <returns></returns>
-        public IEnumerable<Message> GetMessagesAllSendersSinceDaysAgo(int sinceDaysAgo)
+        public List<Message> GetMessagesAllSendersSinceDaysAgo(int sinceDaysAgo)
         {
             var startDateTimeFilter = DateTime.UtcNow.AddDays(-sinceDaysAgo).ToString("yyyy-MM-dd HH:mm:ss");
             var messages = new List<Message>();
@@ -213,7 +153,7 @@ namespace PigeonMessenger
         /// <param name="sender"></param>
         /// <param name="limit"></param>
         /// <returns></returns>
-        public IEnumerable<Message> GetMessagesBetweenPartiesWithLimit(string recipient, string sender, int limit)
+        public List<Message> GetMessagesBetweenPartiesWithLimit(string recipient, string sender, int limit)
         {
             var cleanRecipient = recipient.Trim().ToLower();
             var cleanSender = sender.Trim().ToLower();
@@ -222,9 +162,8 @@ namespace PigeonMessenger
             
             var sqlStatement = $"SELECT * " +
                                $"FROM messages " +
-                               $"WHERE isPublic = true " +
-                               $"AND (recipient = (?) AND sender = (?)) " + // cleanRecipient, cleanSender
-                               $"OR (recipient = (?) AND sender = (?)) " + // cleanSender, cleanRecipient
+                               $"WHERE isPublic = true AND (recipient = (?) AND sender = (?)) " + // cleanRecipient, cleanSender
+                               $"OR (isPublic = true AND recipient = (?) AND sender = (?)) " + // cleanSender, cleanRecipient
                                $"ORDER BY createdAt DESC " +
                                $"LIMIT {limit};";
 
@@ -258,6 +197,105 @@ namespace PigeonMessenger
             return messages;
         }
 
+        /// <summary>
+        /// Takes 'recipient', 'sender', and 'sinceDaysAgo' parameters and queries the messages table for all messages between the provided parties during the number of days provided, up to a maximum of 30 days.
+        /// Results are returned in descending order by the time they were created at.
+        /// </summary>
+        /// <param name="recipient"></param>
+        /// <param name="sender"></param>
+        /// <param name="sinceDaysAgo"></param>
+        /// <returns></returns>
+        public List<Message> GetMessagesBetweenPartiesSinceDaysAgo(string recipient, string sender, int sinceDaysAgo)
+        {
+            var cleanRecipient = recipient.Trim().ToLower();
+            var cleanSender = sender.Trim().ToLower();
+            var startDateTimeFilter = DateTime.UtcNow.AddDays(-sinceDaysAgo).ToString("yyyy-MM-dd HH:mm:ss");
+            var messages = new List<Message>();
+
+            // parameterized to prevent SQL injection and to handle correctly parsing special characters.
+            var parameterizedSql = $"SELECT * " +
+                               $"FROM messages " +
+                               $"WHERE createdAt > '{startDateTimeFilter}' AND isPublic = true AND recipient = (?) AND sender = (?) " +
+                               $"OR (createdAt > '{startDateTimeFilter}' AND isPublic = true AND recipient = (?) AND sender = (?)) " +
+                               $"ORDER BY createdAt DESC;"; // To-do: May consider adding a limit to this call i.e. what if 10,000 messages were exchanged between these two parties in the time provided? How useful would that result set be?
+
+            var parameters = new List<SnowflakeDbParameter>();
+
+            var p1 = new SnowflakeDbParameter();
+            p1.ParameterName = "1";
+            p1.Value = cleanRecipient;
+            p1.DbType = DbType.String;
+            parameters.Add(p1);
+
+            var p2 = new SnowflakeDbParameter();
+            p2.ParameterName = "2";
+            p2.Value = cleanSender;
+            p2.DbType = DbType.String;
+            parameters.Add(p2);
+
+            var p3 = new SnowflakeDbParameter();
+            p3.ParameterName = "3";
+            p3.Value = cleanSender;
+            p3.DbType = DbType.String;
+            parameters.Add(p3);
+
+            var p4 = new SnowflakeDbParameter();
+            p4.ParameterName = "4";
+            p4.Value = cleanRecipient;
+            p4.DbType = DbType.String;
+            parameters.Add(p4);
+
+            ExecuteGetMessagesQuery(messages, parameterizedSql, parameters);
+
+            return messages;
+        }
+
+        /// <summary>
+        /// Deletes record with given ID from Snowflake database.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public void DeleteMessage(string id)
+        {
+            var sqlStatement = "DELETE FROM messages " +
+                               "WHERE id = (?);";
+
+            var p1 = new SnowflakeDbParameter();
+            p1.ParameterName = "1";
+            p1.Value = id;
+            p1.DbType = DbType.String;
+
+            using var conn = new SnowflakeDbConnection();
+
+            try
+            {
+                var connectionString = $"account={Environment.GetEnvironmentVariable("SnowflakeAccount")};" +
+                                        $"user={Environment.GetEnvironmentVariable("SnowflakeUser")};" +
+                                        $"password={Environment.GetEnvironmentVariable("SnowflakePassword")};" +
+                                        $"db={Environment.GetEnvironmentVariable("SnowflakeDb")};" +
+                                        $"schema={Environment.GetEnvironmentVariable("SnowflakeSchema")}";
+
+                conn.ConnectionString = connectionString;
+                conn.Open();
+
+                using var cmd = conn.CreateCommand();
+
+                cmd.CommandText = sqlStatement;
+                cmd.Parameters.Add(p1);
+
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Failed to delete record with ID {id} to Snowflake: {e.Message}");
+                throw;
+            }
+            finally
+            {
+                conn.Close();
+            }
+
+        }
 
         private void ExecuteGetMessagesQuery(List<Message> messages, string sqlStatement, List<SnowflakeDbParameter> parameters)
         {
