@@ -171,7 +171,7 @@ namespace PigeonMessenger
             var sqlStatement = $"SELECT * " +
                                $"FROM messages " +
                                $"WHERE isPublic = true " +
-                               $"ORDER BY updatedAt DESC " +
+                               $"ORDER BY createdAt DESC " +
                                $"LIMIT {limit};";
 
             var parameters = new List<SnowflakeDbParameter>();
@@ -194,9 +194,9 @@ namespace PigeonMessenger
 
             var sqlStatement = $"SELECT * " +
                                $"FROM messages " +
-                               $"WHERE updatedAt > '{startDateTimeFilter}' " + // Using updatedAt instead of createdAt since if a message is edited, that's the intended message (might refactor to make an edited message a new message?)
+                               $"WHERE createdAt > '{startDateTimeFilter}' " +
                                $"AND isPublic = true " +
-                               $"ORDER BY updatedAt DESC;";
+                               $"ORDER BY createdAt DESC;";
             
             var parameters = new List<SnowflakeDbParameter>();
 
@@ -225,7 +225,7 @@ namespace PigeonMessenger
                                $"WHERE isPublic = true " +
                                $"AND (recipient = (?) AND sender = (?)) " + // cleanRecipient, cleanSender
                                $"OR (recipient = (?) AND sender = (?)) " + // cleanSender, cleanRecipient
-                               $"ORDER BY updatedAt DESC " +
+                               $"ORDER BY createdAt DESC " +
                                $"LIMIT {limit};";
 
             var parameters = new List<SnowflakeDbParameter>();
