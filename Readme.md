@@ -1,6 +1,6 @@
 # PigeonMessenger
 
-Welcome to PigeonMessenger, an API created by Brian Plantico as an at home engineering project during an interview for a Back End Engineering position. PigeonMessenger is built using Azure's cloud native Functions and also utilizes the cloud database provider Snowflake for persisten data storage. The endpoints which you can interact with are outlined below with examples of successful requests and successful responses, however, if you have any questions about this API, please reach out to me directly.
+Welcome to PigeonMessenger, an API created by Brian Plantico as an at home engineering project during an interview for a Back End Engineering position. PigeonMessenger is built using Azure's cloud native Functions and also utilizes the cloud database provider Snowflake for persistent data storage. The endpoints which you can interact with are outlined below with examples of successful requests and successful responses, however, if you have any questions about this API, please reach out to me directly.
 
 Deployed Link:
 https://pigeonmessengerapp.azurewebsites.net/api/v1/messages
@@ -9,7 +9,16 @@ https://pigeonmessengerapp.azurewebsites.net/api/v1/messages
 
 ### Schema
 PigeonMessenger's database schema currently has one table, Messages, though additional tables to persist Users and a corresponding joins table for UsersMessages would also make sense to implement soon with more time.
+
 ![PigeonMessenger's DB Schema](https://user-images.githubusercontent.com/43261385/103309281-ee4dca00-49d1-11eb-8443-332199460d1d.png)
+
+### CI/CD and Monitoring
+
+In order to expedite integrating and deployments, a small CI/CD pipeline has been set up for the application. Currently the pipeline runs when changes are committed to a remote branch, which triggers the test suite to run, the code to be built, and (if both previous steps are successful) for the code to be deployed to either the develop or production environment, depending on the target branch.
+![PigeonMessenger CI/CD Pipeline](https://user-images.githubusercontent.com/43261385/103312596-c7e05c80-49da-11eb-8fc7-df90d760e6fa.png)
+
+To make monitoring the application quick and easy, I've also created an ApplicationInsights resource in order to monitor traffic and dependency calls for the program.
+![PigeonMessenger ApplicationInsights Resource](https://user-images.githubusercontent.com/43261385/103312543-a2ebe980-49da-11eb-863c-73f011fe6b3c.png)
 
 ### Setup and Configuration
 
@@ -26,7 +35,8 @@ It's not necessary to install and run PigeonMessenger on your local machine sinc
 Fork and/or clone this repository to your local machine.
 
 Open PigeonMessenger.sln in Visual Studio (or IDE/code editor of your choice that supports running C#/.NET Core code).
-The Target Framework used is .Net Core 3.1 (Microsoft.NETCore.App). 
+The Target Framework used is .Net Core 3.1 (Microsoft.NETCore.App).
+More information on getting your environment set up to run AzureFunctions locally can be found in Microsoft's documentation, for example here's how to run AzureFunctions using Visual Studio Code: https://docs.microsoft.com/en-us/azure/azure-functions/create-first-function-vs-code-csharp#run-the-function-locally
 
 Please message bplantico@gmail.com for credentials to connect to the Snowflake DB.
 
