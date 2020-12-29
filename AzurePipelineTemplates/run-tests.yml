@@ -13,7 +13,7 @@ steps:
     displayName: Nuget Restore
     inputs:
       command: 'restore'
-      projects: '**/PigeonMessenger.Tests.*.csproj'
+      projects: '**/PigeonMessenger.Tests.csproj'
       feedsToUse: 'select'
 
   - task: DotNetCoreCLI@2
