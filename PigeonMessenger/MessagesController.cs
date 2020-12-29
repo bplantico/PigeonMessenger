@@ -102,18 +102,16 @@ namespace PigeonMessenger
         /// <param name="req"></param>
         /// <returns></returns>
         [FunctionName("MessagesGetForAllSenders")]
-        public async Task<IActionResult> MessagesGetForAllSenders([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/messages")] HttpRequest req)
+        public ActionResult<List<Message>> MessagesGetForAllSenders([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/messages")] HttpRequest req)
         {
             IEnumerable<Message> messages;
 
-            //if (!String.IsNullOrEmpty(since_days_ago))
             if (req.Query.ContainsKey("since_days_ago"))
             {
                 int sinceDaysAgo;
                 try
                 {
                     sinceDaysAgo = int.Parse(req.Query["since_days_ago"]) > 30 ? 30 : int.Parse(req.Query["since_days_ago"]);
-                    //sinceDaysAgo = int.Parse(since_days_ago) > 30 ? 30 : int.Parse(since_days_ago);
                 }
                 catch (Exception)
                 {
