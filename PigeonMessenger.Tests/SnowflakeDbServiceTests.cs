@@ -41,8 +41,36 @@ namespace PigeonMessenger.Tests
             _snowflakeDbService.DeleteMessage(newMessageId);
         }
 
+        // To-do: Add tests for attempted create if missing or bad data.
+
         [Fact]
-        public void GetMessagesBetweenPartiesSinceDaysAgo_ReturnsLimitedNumberOfMessagesBetweenTwoParties()
+        public void GetMessagesAllSendersWithLimit_ReturnsLimitedNumberOfMessages()
+        {
+            // Test database preloaded with four messages between tom and jerry, along with one message from spike_bulldog to tom.
+
+            var messages = _snowflakeDbService.GetMessagesAllSendersWithLimit(3);
+
+            // Do we get the correct number of messages back?
+            Assert.Equal(3, messages.Count);
+            // Do we get the most recent message first?
+            Assert.Equal("Can you help me with something outside, Tom?", messages[0].Body);
+        }
+
+        [Fact]
+        public void GetMessagesAllSendersSinceDaysAgo_ReturnsAllMessagesSentInTimePeriod()
+        {
+            // Test database preloaded with four messages between tom and jerry, along with one message from spike_bulldog to tom.
+
+            var messages = _snowflakeDbService.GetMessagesAllSendersSinceDaysAgo(3);
+
+            // Do we get the correct number of messages back?
+            Assert.Equal(2, messages.Count);
+            // Do we get the most recent message first?
+            Assert.Equal("Can you help me with something outside, Tom?", messages[0].Body);
+        }
+
+        [Fact]
+        public void GetMessagesBetweenPartiesWithLimit_ReturnsLimitedNumberOfMessagesBetweenTwoParties()
         {
             // Test database preloaded with four messages between tom and jerry, along with one message from spike_bulldog to tom.
             
@@ -71,30 +99,6 @@ namespace PigeonMessenger.Tests
             Assert.True(messages[0].Sender != "spike_bulldog" || messages[0].Recipient != "spike_bulldog");
         }
 
-        [Fact]
-        public void GetMessagesAllSendersSinceDaysAgo_ReturnsAllMessagesSentInTimePeriod()
-        {
-            // Test database preloaded with four messages between tom and jerry, along with one message from spike_bulldog to tom.
 
-            var messages = _snowflakeDbService.GetMessagesAllSendersSinceDaysAgo(3);
-
-            // Do we get the correct number of messages back?
-            Assert.Equal(2, messages.Count);
-            // Do we get the most recent message first?
-            Assert.Equal("Can you help me with something outside, Tom?", messages[0].Body);
-        }
-
-        [Fact]
-        public void GetMessagesAllSendersWithLimit_ReturnsLimitedNumberOfMessages()
-        {
-            // Test database preloaded with four messages between tom and jerry, along with one message from spike_bulldog to tom.
-
-            var messages = _snowflakeDbService.GetMessagesAllSendersWithLimit(3);
-
-            // Do we get the correct number of messages back?
-            Assert.Equal(3, messages.Count);
-            // Do we get the most recent message first?
-            Assert.Equal("Can you help me with something outside, Tom?", messages[0].Body);
-        }
     }
 }
