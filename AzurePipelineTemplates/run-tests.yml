@@ -1,0 +1,25 @@
+steps:
+  - task: UseDotNet@2
+    inputs:
+      packageType: 'sdk'
+      version: 3.1.101
+
+  - script: dotnet tool restore
+    displayName: dotnet tool restore
+
+  - task: NuGetToolInstaller@1
+
+  - task: DotNetCoreCLI@2
+    displayName: Nuget Restore
+    inputs:
+      command: 'restore'
+      projects: '**/PigeonMessenger.Tests.*.csproj'
+      feedsToUse: 'select'
+
+  - task: DotNetCoreCLI@2
+    displayName: Run Tests
+    inputs:
+      command: test
+      publishTestResults: true
+      projects: '.\PigeonMessenger.sln'
+      arguments: '--filter TestCategory!=DoNotRunOnBuild /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura'

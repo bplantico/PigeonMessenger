@@ -4,6 +4,17 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
 stages:
+  - stage: RunUnitTests
+    displayName: Run Unit Tests
+    dependsOn: []
+    jobs:
+    - job: runUnitTests
+      displayName: Run Unit Tests
+      pool:
+        vmImage: 'windows-latest'
+      steps:
+      - template: AzurePipelineTemplates/run-tests.yml
+
   - stage: BuildPigeonMessengerAPI
     displayName: Build Pigeon Messenger API
     jobs:
