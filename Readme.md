@@ -20,6 +20,9 @@ In order to expedite integrating and deployments, a small CI/CD pipeline has bee
 To make monitoring the application quick and easy, I've also created an ApplicationInsights resource in order to monitor traffic and dependency calls for the program.
 ![PigeonMessenger ApplicationInsights Resource](https://user-images.githubusercontent.com/43261385/103312543-a2ebe980-49da-11eb-863c-73f011fe6b3c.png)
 
+### Testing
+Tests have been set up to run against a seperate test schema. The username and password set as environment varibles within the tests should provide access, however, the credentials run against a trial Snowflake instance so will expire around the end of January 2021. That being said, happy paths have been tested for each function being invoked by the controller on the database service layer, and with more time, tests would be written for additional scenarios.
+
 ### Setup and Configuration
 
 
