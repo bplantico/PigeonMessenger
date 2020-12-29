@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>PigeonMessenger</name>
+    </assembly>
+    <members>
+        <member name="T:PigeonMessenger.MessagesController">
+            <summary>
+            Controller layer to handle HTTP requests for Message resource.
+            </summary>
+        </member>
+        <member name="M:PigeonMessenger.MessagesController.#ctor(PigeonMessenger.IDbService)">
+            <summary>
+            MessagesController constructor which takes in an IDbService parameter (from DI/Startup in this case).
+            </summary>
+            <param name="snowflakeDbService"></param>
+        </member>
+        <member name="M:PigeonMessenger.MessagesController.MessagesCreate(Microsoft.AspNetCore.Http.HttpRequest)">
+            <summary>
+            Receives a POST request with key value pairs of 'sender' (string), 'receiver' (string), 'body' (string), and 'ispublic' (bool) in JSON body and returns the id (a guid, as a string without hyphens) of the created Message.
+            </summary>
+            <param name="req"></param>
+            <returns></returns>
+        </member>
+        <member name="M:PigeonMessenger.MessagesController.MessagesGetForRecipientFromSpecificSender(Microsoft.AspNetCore.Http.HttpRequest,System.String,System.String)">
+            <summary>
+            Receives a GET request and returns Messages exchanged between the provided recipient and sender. Also takes an optional query parameter of 'since_days_ago' which
+            can be set to an integer value with a max of 30, and which filters the result set to every message between the parties within the provided number of days.
+            If the since_days_ago parameter is not supplied, the result set is limited to a default number that is set through a configurable environment variable (currently set to 100).
+            </summary>
+            <param name="req"></param>
+            <param name="recipient"></param>
+            <param name="sender"></param>
+            <returns></returns>
+        </member>
+        <member name="M:PigeonMessenger.MessagesController.MessagesGetForAllSenders(Microsoft.AspNetCore.Http.HttpRequest)">
+            <summary>
+            Receives a GET request and returns Messages for all senders. Also takes an optional query parameter of 'since_days_ago' which
+            can be set to an integer value with a max of 30, and which filters the result set to every message sent within the provided number of days.
+            If the since_days_ago parameter is not supplied, the result set is limited to a default number that is set through a configurable environment variable (currently set to 100).
+            </summary>
+            <param name="req"></param>
+            <returns></returns>
+        </member>
+        <member name="T:PigeonMessenger.SnowflakeDbService">
+            <summary>
+            Service class to interact with a Snowflake database.
+            </summary>
+        </member>
+        <member name="M:PigeonMessenger.SnowflakeDbService.#ctor(Microsoft.Extensions.Logging.ILogger{PigeonMessenger.SnowflakeDbService})">
+            <summary>
+            Constructor which takes an ILogger, in this case from DI/startup.
+            </summary>
+            <param name="logger"></param>
+        </member>
+        <member name="M:PigeonMessenger.SnowflakeDbService.CreateMessage(PigeonMessenger.Contract.Message)">
+            <summary>
+            Takes a Message as a parameter and inserts the Message into the messages table using a parameterized query to guard against SQL injection attacks.
+            </summary>
+            <param name="message"></param>
+            <returns></returns>
+        </member>
+        <member name="M:PigeonMessenger.SnowflakeDbService.GetMessagesBetweenPartiesSinceDaysAgo(System.String,System.String,System.Int32)">
+            <summary>
+            Takes 'recipient', 'sender', and 'sinceDaysAgo' parameters and queries the messages table for all messages between the provided parties during the number of days provided, up to a maximum of 30 days.
+            Results are returned in descending order by the time they were created at.
+            </summary>
+            <param name="recipient"></param>
+            <param name="sender"></param>
+            <param name="sinceDaysAgo"></param>
+            <returns></returns>
+        </member>
+        <member name="M:PigeonMessenger.SnowflakeDbService.GetMessagesAllSendersWithLimit(System.Int32)">
+            <summary>
+            Takes a 'limit' parameter and queries the messages tabel for all messages from any/all senders, up to the provided limit.
+            Results are returned in descending order by the time they were created at.
+            </summary>
+            <param name="limit"></param>
+            <returns></returns>
+        </member>
+        <member name="M:PigeonMessenger.SnowflakeDbService.GetMessagesAllSendersSinceDaysAgo(System.Int32)">
+            <summary>
+            Takes a 'sinceDaysAgo' parameter and queries the messages table for all messages from any/all senders during the number of days provided, up to a maximum of 30 days.
+            Results are returned in descending order by the time they were created at.
+            </summary>
+            <param name="sinceDaysAgo"></param>
+            <returns></returns>
+        </member>
+        <member name="M:PigeonMessenger.SnowflakeDbService.GetMessagesBetweenPartiesWithLimit(System.String,System.String,System.Int32)">
+            <summary>
+            Takes 'recipient', 'sender', and 'sinceDaysAgo' parameters and queries the messages table for all messages between the provided parties, up to the provided limit.
+            Results are returned in descending order by the time they were created at.
+            </summary>
+            <param name="recipient"></param>
+            <param name="sender"></param>
+            <param name="limit"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

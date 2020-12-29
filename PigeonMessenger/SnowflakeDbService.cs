@@ -8,57 +8,103 @@ using System.Text.Json;
 
 namespace PigeonMessenger
 {
+    /// <summary>
+    /// Service class to interact with a Snowflake database.
+    /// </summary>
     public class SnowflakeDbService : IDbService
     {
         private readonly ILogger _logger;
+
+        /// <summary>
+        /// Constructor which takes an ILogger, in this case from DI/startup.
+        /// </summary>
+        /// <param name="logger"></param>
         public SnowflakeDbService(ILogger<SnowflakeDbService> logger)
         {
             _logger = logger;
         }
 
-
+        /// <summary>
+        /// Takes a Message as a parameter and inserts the Message into the messages table using a parameterized query to guard against SQL injection attacks.
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
         public string CreateMessage(Message message)
         {
             var cleanSender = message.Sender.Trim().ToLower();
             var cleanRecipient = message.Recipient.Trim().ToLower();
             message.Id = Guid.NewGuid().ToString("N");
-            var serializedBody = JsonSerializer.Serialize(message.Body);
 
-            var sqlStatement = $"INSERT INTO messages (id, sender, recipient, body, isPublic) " +
-                               $"SELECT '{message.Id}', '{cleanSender}', '{cleanRecipient}', '{serializedBody}', {message.IsPublic};";
+            using var conn = new SnowflakeDbConnection();
 
-            using (IDbConnection conn = new SnowflakeDbConnection())
+            try
             {
-                try
-                {
-                    var connectionString = $"account={Environment.GetEnvironmentVariable("SnowflakeAccount")};" +
-                                           $"user={Environment.GetEnvironmentVariable("SnowflakeUser")};" +
-                                           $"password={Environment.GetEnvironmentVariable("SnowflakePassword")};" +
-                                           $"db={Environment.GetEnvironmentVariable("SnowflakeDb")};" +
-                                           $"schema={Environment.GetEnvironmentVariable("SnowflakeSchema")}";
+                var connectionString = $"account={Environment.GetEnvironmentVariable("SnowflakeAccount")};" +
+                                        $"user={Environment.GetEnvironmentVariable("SnowflakeUser")};" +
+                                        $"password={Environment.GetEnvironmentVariable("SnowflakePassword")};" +
+                                        $"db={Environment.GetEnvironmentVariable("SnowflakeDb")};" +
+                                        $"schema={Environment.GetEnvironmentVariable("SnowflakeSchema")}";
 
-                    conn.ConnectionString = connectionString;
-                    conn.Open();
+                conn.ConnectionString = connectionString;
+                conn.Open();
 
-                    IDbCommand cmd = conn.CreateCommand();
+                using var cmd = conn.CreateCommand();
 
-                    cmd.CommandText = sqlStatement;
-                    cmd.ExecuteNonQuery();
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, $"Failed to add new record to Snowflake: {e.Message}");
-                    throw;
-                }
-                finally
-                {
-                    conn.Close();
-                }
+                cmd.CommandText = "INSERT INTO messages (id, sender, recipient, body, isPublic) VALUES (?,?,?,?,?)";
+
+                var p1 = cmd.CreateParameter();
+                p1.ParameterName = "1";
+                p1.Value = message.Id;
+                p1.DbType = DbType.String;
+                cmd.Parameters.Add(p1);
+
+                var p2 = cmd.CreateParameter();
+                p2.ParameterName = "2";
+                p2.Value = cleanSender;
+                p2.DbType = DbType.String;
+                cmd.Parameters.Add(p2);
+
+                var p3 = cmd.CreateParameter();
+                p3.ParameterName = "3";
+                p3.Value = cleanRecipient;
+                p3.DbType = DbType.String;
+                cmd.Parameters.Add(p3);
+
+                var p4 = cmd.CreateParameter();
+                p4.ParameterName = "4";
+                p4.Value = message.Body;
+                p4.DbType = DbType.String;
+                cmd.Parameters.Add(p4);
+
+                var p5 = cmd.CreateParameter();
+                p5.ParameterName = "5";
+                p5.Value = message.IsPublic;
+                p5.DbType = DbType.Boolean;
+                cmd.Parameters.Add(p5);
+
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Failed to add new record to Snowflake: {e.Message}");
+                throw;
+            }
+            finally
+            {
+                conn.Close();
             }
 
             return message.Id;
         }
 
+        /// <summary>
+        /// Takes 'recipient', 'sender', and 'sinceDaysAgo' parameters and queries the messages table for all messages between the provided parties during the number of days provided, up to a maximum of 30 days.
+        /// Results are returned in descending order by the time they were created at.
+        /// </summary>
+        /// <param name="recipient"></param>
+        /// <param name="sender"></param>
+        /// <param name="sinceDaysAgo"></param>
+        /// <returns></returns>
         public IEnumerable<Message> GetMessagesBetweenPartiesSinceDaysAgo(string recipient, string sender, int sinceDaysAgo)
         {
             var startDateTimeFilter = DateTime.UtcNow.AddDays(-sinceDaysAgo).ToString("yyyy-MM-dd HH:mm:ss");
@@ -66,17 +112,23 @@ namespace PigeonMessenger
 
             var sqlStatement = $"SELECT * " +
                                $"FROM messages " +
-                               $"WHERE recipient = '{recipient}' " +
-                               $"AND sender = '{sender}' " +
-                               $"AND updatedAt > '{startDateTimeFilter}' " + // Using updatedAt instead of createdAt since if a message is edited, that's the intended message (might refactor to make an edited message a new message?)
+                               $"WHERE createdAt > '{startDateTimeFilter}' " +
                                $"AND isPublic = true " +
-                               $"ORDER BY updatedAt DESC;";
+                               $"AND (recipient = '{recipient}' AND sender = '{sender}') " +
+                               $"OR (recipient = '{sender}' AND sender = '{recipient}') " +
+                               $"ORDER BY createdAt DESC;";
 
             ExecuteGetMessagesQuery(messages, sqlStatement);
 
             return messages;
         }
 
+        /// <summary>
+        /// Takes a 'limit' parameter and queries the messages tabel for all messages from any/all senders, up to the provided limit.
+        /// Results are returned in descending order by the time they were created at.
+        /// </summary>
+        /// <param name="limit"></param>
+        /// <returns></returns>
         public IEnumerable<Message> GetMessagesAllSendersWithLimit(int limit)
         {
             var messages = new List<Message>();
@@ -92,6 +144,12 @@ namespace PigeonMessenger
             return messages;
         }
 
+        /// <summary>
+        /// Takes a 'sinceDaysAgo' parameter and queries the messages table for all messages from any/all senders during the number of days provided, up to a maximum of 30 days.
+        /// Results are returned in descending order by the time they were created at.
+        /// </summary>
+        /// <param name="sinceDaysAgo"></param>
+        /// <returns></returns>
         public IEnumerable<Message> GetMessagesAllSendersSinceDaysAgo(int sinceDaysAgo)
         {
             var startDateTimeFilter = DateTime.UtcNow.AddDays(-sinceDaysAgo).ToString("yyyy-MM-dd HH:mm:ss");
@@ -108,6 +166,14 @@ namespace PigeonMessenger
             return messages;
         }
 
+        /// <summary>
+        /// Takes 'recipient', 'sender', and 'sinceDaysAgo' parameters and queries the messages table for all messages between the provided parties, up to the provided limit.
+        /// Results are returned in descending order by the time they were created at.
+        /// </summary>
+        /// <param name="recipient"></param>
+        /// <param name="sender"></param>
+        /// <param name="limit"></param>
+        /// <returns></returns>
         public IEnumerable<Message> GetMessagesBetweenPartiesWithLimit(string recipient, string sender, int limit)
         {
             var messages = new List<Message>();

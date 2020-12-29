@@ -11,14 +11,27 @@ using System.Threading.Tasks;
 
 namespace PigeonMessenger
 {
+    /// <summary>
+    /// Controller layer to handle HTTP requests for Message resource.
+    /// </summary>
     public class MessagesController
     {
-        private readonly SnowflakeDbService _snowflakeDbService;
-        public MessagesController(SnowflakeDbService snowflakeDbService)
+        private readonly IDbService _snowflakeDbService;
+
+        /// <summary>
+        /// MessagesController constructor which takes in an IDbService parameter (from DI/Startup in this case).
+        /// </summary>
+        /// <param name="snowflakeDbService"></param>
+        public MessagesController(IDbService snowflakeDbService)
         {
             _snowflakeDbService = snowflakeDbService;
         }
 
+        /// <summary>
+        /// Receives a POST request with key value pairs of 'sender' (string), 'receiver' (string), 'body' (string), and 'ispublic' (bool) in JSON body and returns the id (a guid, as a string without hyphens) of the created Message.
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
         [FunctionName("MessagesCreate")]
         public async Task<IActionResult> MessagesCreate([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/messages")] HttpRequest req)
         {
@@ -47,8 +60,17 @@ namespace PigeonMessenger
             return new CreatedResult($"{req.Path}/{messageId}", messageId);
         }
 
+        /// <summary>
+        /// Receives a GET request and returns Messages exchanged between the provided recipient and sender. Also takes an optional query parameter of 'since_days_ago' which
+        /// can be set to an integer value with a max of 30, and which filters the result set to every message between the parties within the provided number of days.
+        /// If the since_days_ago parameter is not supplied, the result set is limited to a default number that is set through a configurable environment variable (currently set to 100).
+        /// </summary>
+        /// <param name="req"></param>
+        /// <param name="recipient"></param>
+        /// <param name="sender"></param>
+        /// <returns></returns>
         [FunctionName("MessagesGetForRecipientFromSpecificSender")]
-        public async Task<IActionResult> MessagesGetForRecipientFromSpecificSender([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/messages/{recipient}/{sender}")] HttpRequest req, string recipient, string sender)
+        public ActionResult<List<Message>> MessagesGetForRecipientFromSpecificSender([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/messages/{recipient}/{sender}")] HttpRequest req, string recipient, string sender)
         {
             IEnumerable<Message> messages;
 
@@ -58,7 +80,6 @@ namespace PigeonMessenger
                 try
                 {
                     sinceDaysAgo = int.Parse(req.Query["since_days_ago"]) > 30 ? 30 : int.Parse(req.Query["since_days_ago"]);
-
                 }
                 catch (Exception)
                 {
@@ -73,17 +94,26 @@ namespace PigeonMessenger
             return new OkObjectResult(messages);
         }
 
+        /// <summary>
+        /// Receives a GET request and returns Messages for all senders. Also takes an optional query parameter of 'since_days_ago' which
+        /// can be set to an integer value with a max of 30, and which filters the result set to every message sent within the provided number of days.
+        /// If the since_days_ago parameter is not supplied, the result set is limited to a default number that is set through a configurable environment variable (currently set to 100).
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
         [FunctionName("MessagesGetForAllSenders")]
         public async Task<IActionResult> MessagesGetForAllSenders([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/messages")] HttpRequest req)
         {
             IEnumerable<Message> messages;
 
+            //if (!String.IsNullOrEmpty(since_days_ago))
             if (req.Query.ContainsKey("since_days_ago"))
             {
                 int sinceDaysAgo;
                 try
                 {
                     sinceDaysAgo = int.Parse(req.Query["since_days_ago"]) > 30 ? 30 : int.Parse(req.Query["since_days_ago"]);
+                    //sinceDaysAgo = int.Parse(since_days_ago) > 30 ? 30 : int.Parse(since_days_ago);
                 }
                 catch (Exception)
                 {

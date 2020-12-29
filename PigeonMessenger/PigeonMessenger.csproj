@@ -4,6 +4,9 @@
     <AzureFunctionsVersion>v3</AzureFunctionsVersion>
     <UserSecretsId>e4c570d1-9fd0-46e0-b22d-a015c0b6958b</UserSecretsId>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>C:\Users\BrianPlantico\Desktop\PigeonMessenger\PigeonMessenger\PigeonMessenger.xml</DocumentationFile>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights.WorkerService" Version="2.15.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
