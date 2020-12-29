@@ -9,7 +9,7 @@ namespace PigeonMessenger
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            builder.Services.AddScoped<SnowflakeDbService>();
+            builder.Services.AddScoped<IDbService, SnowflakeDbService>();
         }
     }
 }
